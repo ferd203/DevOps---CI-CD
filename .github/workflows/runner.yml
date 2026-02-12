@@ -1,43 +1,52 @@
-name: Test Runner
+name: CI/CD - Test HTML et Déploiements
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
 
 jobs:
-  test-runner:
+
+  test-html:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v3
+      - name: Vérification syntaxe HTML
+        uses: Cyb3r-Jak3/html5validator-action@v7.2.0
+        with:
+          root: .
+
+  deploy-github-pages:
+    needs: test-html
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v3
+      - name: Déploiement vers GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+
+  deploy-runner:
+    needs: test-html
+    if: success()
     runs-on:
       - self-hosted
       - linux
       - x64
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Verification
-        run: echo "Test de fonctionnement du Runner !"
-
-      - name: tests de commandes
+      - name: Récupération du code
+        uses: actions/checkout@v3
+      - name: Déploiement sur le serveur local
         run: |
-          echo "Runner OK"
-          hostname
-          whoami
-          uname -a
-
-  deploy:
-    needs: test-runner     # ⬅ Dépend des tests : ne s'exécute que si test-runner réussit
-    if: success()          # ⬅ Double sécurité : seulement si TOUT le job test-runner est OK
-    runs-on:
-      - self-hosted
-      - linux
-      - x64
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Déployer le site
-        run: |
-          echo "Déploiement en cours..."
-          cp -r . /var/www/html
+          echo "Déploiement en cours sur le runner..."
+          sudo cp -r * /var/www/html/
           echo "Déploiement terminé."
+
