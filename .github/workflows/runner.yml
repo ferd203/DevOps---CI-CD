@@ -39,4 +39,5 @@ jobs:
       - name: Déployer le site
         run: |
           echo "Déploiement en cours..."
+          cp -r . /var/www/html
           echo "Déploiement terminé."
