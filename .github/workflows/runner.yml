@@ -1,0 +1,43 @@
+name: Test Runner
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-runner:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verification
+        run: echo "Test de fonctionnement du Runner !"
+
+      - name: tests de commandes
+        run: |
+          echo "Runner OK"
+          hostname
+          whoami
+          uname -a
+
+  deploy:
+    needs: test-runner     # ⬅ Dépend des tests : ne s'exécute que si test-runner réussit
+    if: success()          # ⬅ Double sécurité : seulement si TOUT le job test-runner est OK
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Déployer le site
+        run: |
+          echo "Déploiement en cours..."
+          cp -r . /var/www/html
+          echo "Déploiement terminé."
